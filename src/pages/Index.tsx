@@ -4,6 +4,7 @@ import { GraduationCap, Calendar, Users, Building, BookOpen, ChevronRight, Check
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  console.log("Index component is rendering");
   const navigate = useNavigate();
 
   const features = [
