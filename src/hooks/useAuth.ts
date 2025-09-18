@@ -40,7 +40,7 @@ export function useAuth() {
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('Error fetching user profile:', error)
@@ -92,10 +92,13 @@ export function useAuth() {
   const signUp = async (email: string, password: string, fullName: string, role: 'admin' | 'faculty' | 'student') => {
     try {
       setLoading(true)
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
             role: role

@@ -31,13 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-// Mock user data - replace with actual auth context
-const currentUser = {
-  name: "Dr. John Smith",
-  role: "Admin",
-  email: "john.smith@university.edu",
-  avatar: ""
-};
+import { useAuth } from "@/hooks/useAuth";
 
 const adminItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -69,6 +63,11 @@ export function AppSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const [isScheduleOpen, setIsScheduleOpen] = useState(true);
+  const { userProfile, signOut } = useAuth();
+
+  if (!userProfile) {
+    return null;
+  }
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
@@ -76,7 +75,7 @@ export function AppSidebar() {
 
   // Determine menu items based on user role
   const getMenuItems = () => {
-    switch (currentUser.role.toLowerCase()) {
+    switch (userProfile.role) {
       case 'admin':
         return adminItems;
       case 'faculty':
@@ -132,7 +131,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {currentUser.role.toLowerCase() === 'admin' && !collapsed && (
+        {userProfile.role === 'admin' && !collapsed && (
           <SidebarGroup>
             <Collapsible open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
               <CollapsibleTrigger asChild>
@@ -173,17 +172,16 @@ export function AppSidebar() {
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={currentUser.avatar} />
                 <AvatarFallback>
-                  {currentUser.name.split(' ').map(n => n[0]).join('')}
+                  {userProfile.full_name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {currentUser.name}
+                  {userProfile.full_name}
                 </p>
                 <p className="text-xs text-sidebar-foreground/60 truncate">
-                  {currentUser.role}
+                  {userProfile.role}
                 </p>
               </div>
             </div>
@@ -191,6 +189,7 @@ export function AppSidebar() {
               variant="ghost" 
               size="sm" 
               className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+              onClick={() => signOut()}
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
@@ -202,6 +201,7 @@ export function AppSidebar() {
             variant="ghost" 
             size="sm" 
             className="w-8 h-8 p-0 mx-auto"
+            onClick={() => signOut()}
           >
             <LogOut className="h-4 w-4" />
           </Button>

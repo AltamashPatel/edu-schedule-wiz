@@ -6,14 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, Clock, AlertCircle } from "lucide-react";
 
-// Mock user data - replace with actual auth context
-const currentUser = {
-  name: "Dr. John Smith",
-  role: "Admin", // Admin, Faculty, Student
-  email: "john.smith@university.edu"
-};
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
+  const { userProfile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive mb-4">No Profile Found</h1>
+          <p className="text-muted-foreground">Unable to load user profile.</p>
+        </div>
+      </div>
+    );
+  }
   const renderRecentActivities = () => {
     const activities = [
       {
@@ -90,7 +105,7 @@ const Dashboard = () => {
       }
     ];
 
-    const actions = currentUser.role.toLowerCase() === 'admin' ? adminActions : facultyActions;
+    const actions = userProfile.role === 'admin' ? adminActions : facultyActions;
 
     return (
       <Card className="academic-card">
@@ -186,20 +201,20 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {currentUser.name}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {userProfile.full_name}</h1>
             <p className="text-muted-foreground">
-              {currentUser.role} Dashboard - Here's what's happening today
+              {userProfile.role} Dashboard - Here's what's happening today
             </p>
           </div>
           <div className="mt-4 md:mt-0">
             <Badge variant="outline" className="text-sm">
-              {currentUser.role}
+              {userProfile.role}
             </Badge>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <StatsCards userRole={currentUser.role} />
+        <StatsCards userRole={userProfile.role} />
 
         {/* Main Content Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
@@ -207,7 +222,7 @@ const Dashboard = () => {
           <div className="lg:col-span-2">
             <TimetableGrid 
               title="Current Week Schedule" 
-              editable={currentUser.role.toLowerCase() !== 'student'}
+              editable={userProfile.role !== 'student'}
             />
           </div>
 
