@@ -14,7 +14,302 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      batches: {
+        Row: {
+          created_at: string | null
+          department: string
+          id: string
+          name: string
+          section: string
+          semester: number
+          strength: number
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          department: string
+          id?: string
+          name: string
+          section: string
+          semester: number
+          strength: number
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          department?: string
+          id?: string
+          name?: string
+          section?: string
+          semester?: number
+          strength?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      classrooms: {
+        Row: {
+          building: string
+          capacity: number
+          created_at: string | null
+          equipment: string[] | null
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          building: string
+          capacity: number
+          created_at?: string | null
+          equipment?: string[] | null
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          building?: string
+          capacity?: number
+          created_at?: string | null
+          equipment?: string[] | null
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      faculty: {
+        Row: {
+          availability: Json
+          created_at: string | null
+          department: string
+          employee_id: string
+          id: string
+          max_hours_per_week: number
+          specialization: string[]
+          user_id: string
+        }
+        Insert: {
+          availability: Json
+          created_at?: string | null
+          department: string
+          employee_id: string
+          id?: string
+          max_hours_per_week: number
+          specialization?: string[]
+          user_id: string
+        }
+        Update: {
+          availability?: Json
+          created_at?: string | null
+          department?: string
+          employee_id?: string
+          id?: string
+          max_hours_per_week?: number
+          specialization?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          code: string
+          created_at: string | null
+          credits: number
+          department: string | null
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          credits: number
+          department?: string | null
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          credits?: number
+          department?: string | null
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      timetable_slots: {
+        Row: {
+          classroom_id: string
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          faculty_id: string
+          id: string
+          start_time: string
+          subject_id: string
+          timetable_id: string
+          type: string
+        }
+        Insert: {
+          classroom_id: string
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          faculty_id: string
+          id?: string
+          start_time: string
+          subject_id: string
+          timetable_id: string
+          type: string
+        }
+        Update: {
+          classroom_id?: string
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          faculty_id?: string
+          id?: string
+          start_time?: string
+          subject_id?: string
+          timetable_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_slots_classroom_id_fkey"
+            columns: ["classroom_id"]
+            isOneToOne: false
+            referencedRelation: "classrooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_timetable_id_fkey"
+            columns: ["timetable_id"]
+            isOneToOne: false
+            referencedRelation: "timetables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetables: {
+        Row: {
+          academic_year: string
+          approved_by: string | null
+          batch_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+          name: string
+          published_at: string | null
+          semester: number
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          academic_year: string
+          approved_by?: string | null
+          batch_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          name: string
+          published_at?: string | null
+          semester: number
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          academic_year?: string
+          approved_by?: string | null
+          batch_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          name?: string
+          published_at?: string | null
+          semester?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetables_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetables_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetables_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          email: string
+          full_name: string
+          id: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          email: string
+          full_name: string
+          id?: string
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
