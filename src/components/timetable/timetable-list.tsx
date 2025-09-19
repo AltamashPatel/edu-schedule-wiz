@@ -108,10 +108,10 @@ export function TimetableList() {
                 </DropdownMenuItem>
                 {(timetable.created_by === userProfile?.id || isAdmin) && (
                   <>
-                    <DropdownMenuItem>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => window.dispatchEvent(new CustomEvent('editTimetable', { detail: timetable.id }))}>
+                       <Edit className="h-4 w-4 mr-2" />
+                       Edit
+                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Download className="h-4 w-4 mr-2" />
                       Export PDF

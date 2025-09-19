@@ -81,6 +81,39 @@ export function useTimetables() {
     }
   })
 
+  // Update timetable
+  const updateTimetable = useMutation({
+    mutationFn: async (timetableData: Partial<Timetable> & { id: string }) => {
+      const { id, ...updateData } = timetableData;
+      const { data, error } = await supabase
+        .from('timetables')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timetables'] })
+      toast({
+        title: "Timetable updated",
+        description: "Timetable has been updated successfully."
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update timetable",
+        description: error.message,
+        variant: "destructive"
+      })
+    }
+  })
+
   // Update timetable status
   const updateTimetableStatus = useMutation({
     mutationFn: async ({ 
@@ -163,6 +196,7 @@ export function useTimetables() {
     error,
     fetchTimetableSlots,
     createTimetable,
+    updateTimetable,
     updateTimetableStatus,
     deleteTimetable
   }
