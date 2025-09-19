@@ -15,20 +15,26 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<'admin' | 'faculty' | 'student'>('student');
-  const { signIn, signUp, loading } = useAuth();
+  const [formLoading, setFormLoading] = useState(false);
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormLoading(true);
     
-    let success = false;
-    if (isSignUp) {
-      success = await signUp(email, password, fullName, role);
-    } else {
-      success = await signIn(email, password);
-      if (success) {
-        navigate('/dashboard');
+    try {
+      let success = false;
+      if (isSignUp) {
+        success = await signUp(email, password, fullName, role);
+      } else {
+        success = await signIn(email, password);
+        if (success) {
+          navigate('/dashboard');
+        }
       }
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -135,9 +141,9 @@ export function LoginForm() {
               type="submit"
               className="w-full academic-gradient"
               size="lg"
-              disabled={loading}
+              disabled={formLoading}
             >
-              {loading ? "Please wait..." : (isSignUp ? "Create Account" : "Sign In")}
+              {formLoading ? "Please wait..." : (isSignUp ? "Create Account" : "Sign In")}
             </Button>
           </form>
 
