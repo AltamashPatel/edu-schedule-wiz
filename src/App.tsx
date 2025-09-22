@@ -9,6 +9,10 @@ import Index from "./pages/Index";
 import Login from "./pages/auth/login";
 import Dashboard from "./pages/dashboard";
 import Timetables from "./pages/timetables";
+import Batches from "./pages/batches";
+import Faculty from "./pages/faculty";
+import Classrooms from "./pages/classrooms";
+import Settings from "./pages/settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,12 +52,12 @@ const App = () => {
           } />
           <Route path="/faculty" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <Dashboard />
+              <Faculty />
             </ProtectedRoute>
           } />
           <Route path="/classrooms" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <Dashboard />
+              <Classrooms />
             </ProtectedRoute>
           } />
           <Route path="/subjects" element={
@@ -63,7 +67,7 @@ const App = () => {
           } />
           <Route path="/batches" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <Dashboard />
+              <Batches />
             </ProtectedRoute>
           } />
           <Route path="/reports" element={
@@ -73,7 +77,7 @@ const App = () => {
           } />
           <Route path="/settings" element={
             <ProtectedRoute>
-              <Dashboard />
+              <Settings />
             </ProtectedRoute>
           } />
           <Route path="/my-schedule" element={
