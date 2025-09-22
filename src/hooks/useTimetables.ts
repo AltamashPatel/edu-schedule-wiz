@@ -18,9 +18,7 @@ export function useTimetables() {
         .from('timetables')
         .select(`
           *,
-          batch:batches(name, department, year, semester),
-          creator:users!created_by(full_name, email),
-          approver:users!approved_by(full_name, email)
+          batch:batches(name, department, year, semester)
         `)
         .order('created_at', { ascending: false })
 
