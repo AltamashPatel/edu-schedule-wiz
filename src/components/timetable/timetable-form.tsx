@@ -176,19 +176,24 @@ export function TimetableForm({ timetableId, onClose }: TimetableFormProps) {
         if (batchData) {
           // Generate automatic time slots
           try {
-            await generateTimetableSlots(result.id, data.batch_id, batchData.department);
+            const slotsCreated = await generateTimetableSlots(result.id, data.batch_id, batchData.department);
             toast({
-              title: "Success",
-              description: "Timetable created successfully with automatic scheduling",
+              title: "Success", 
+              description: `Timetable created successfully with ${slotsCreated} scheduled slots`,
             });
-          } catch (slotError) {
+          } catch (slotError: any) {
             console.error('Error generating slots:', slotError);
             toast({
               title: "Partial Success",
-              description: "Timetable created but automatic scheduling failed. You can add slots manually.",
+              description: `Timetable created but auto scheduling failed: ${slotError.message}. You can add slots manually.`,
               variant: "destructive"
             });
           }
+        } else {
+          toast({
+            title: "Success",
+            description: "Timetable created successfully. Please add slots manually.",
+          });
         }
       }
 
