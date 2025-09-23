@@ -44,7 +44,7 @@ export function TimetableForm({ timetableId, onClose }: TimetableFormProps) {
   const [fetchingData, setFetchingData] = useState(!!timetableId);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { createTimetable } = useTimetables();
+  const { createTimetable, generateTimetableSlots } = useTimetables();
   const { userProfile } = useAuth();
 
   const form = useForm<TimetableFormData>({
@@ -157,7 +157,7 @@ export function TimetableForm({ timetableId, onClose }: TimetableFormProps) {
         });
       } else {
         // Create new timetable
-        await createTimetable.mutateAsync({
+        const result = await createTimetable.mutateAsync({
           name: data.name,
           batch_id: data.batch_id,
           academic_year: data.academic_year,
@@ -165,6 +165,31 @@ export function TimetableForm({ timetableId, onClose }: TimetableFormProps) {
           status: data.status,
           created_by: userProfile.id,
         });
+
+        // Get batch details to determine department
+        const { data: batchData } = await supabase
+          .from('batches')
+          .select('department')
+          .eq('id', data.batch_id)
+          .single();
+
+        if (batchData) {
+          // Generate automatic time slots
+          try {
+            await generateTimetableSlots(result.id, data.batch_id, batchData.department);
+            toast({
+              title: "Success",
+              description: "Timetable created successfully with automatic scheduling",
+            });
+          } catch (slotError) {
+            console.error('Error generating slots:', slotError);
+            toast({
+              title: "Partial Success",
+              description: "Timetable created but automatic scheduling failed. You can add slots manually.",
+              variant: "destructive"
+            });
+          }
+        }
       }
 
       onClose();

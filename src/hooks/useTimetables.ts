@@ -188,6 +188,92 @@ export function useTimetables() {
     }
   })
 
+  // Generate timetable slots automatically
+  const generateTimetableSlots = async (timetableId: string, batchId: string, department: string) => {
+    try {
+      // Get subjects for the department
+      const { data: subjects } = await supabase
+        .from('subjects')
+        .select('*')
+        .eq('department', department)
+        .limit(6) // Limit to 6 subjects for a basic schedule
+
+      if (!subjects || subjects.length === 0) {
+        throw new Error('No subjects found for this department')
+      }
+
+      // Get faculty for the department
+      const { data: faculty } = await supabase
+        .from('faculty')
+        .select('*')
+        .eq('department', department)
+
+      if (!faculty || faculty.length === 0) {
+        throw new Error('No faculty found for this department')
+      }
+
+      // Get available classrooms
+      const { data: classrooms } = await supabase
+        .from('classrooms')
+        .select('*')
+        .in('type', ['lecture', 'lab'])
+
+      if (!classrooms || classrooms.length === 0) {
+        throw new Error('No classrooms available')
+      }
+
+      // Generate time slots for a week
+      const timeSlots = [
+        { start: '09:00', end: '10:00' },
+        { start: '10:00', end: '11:00' },
+        { start: '11:30', end: '12:30' }, // Break between 11-11:30
+        { start: '12:30', end: '13:30' },
+        { start: '14:30', end: '15:30' }, // Lunch break 13:30-14:30
+        { start: '15:30', end: '16:30' },
+      ]
+
+      const slots = []
+      
+      // Generate slots for Monday to Friday (1-5)
+      for (let day = 1; day <= 5; day++) {
+        for (let timeIndex = 0; timeIndex < timeSlots.length; timeIndex++) {
+          // Skip lunch and some break periods
+          if ((day === 1 && timeIndex === 3) || (day === 3 && timeIndex === 4)) {
+            continue // Create some free periods
+          }
+
+          const subject = subjects[timeIndex % subjects.length]
+          const facultyMember = faculty[timeIndex % faculty.length]
+          const classroom = classrooms[(timeIndex + day) % classrooms.length]
+          const timeSlot = timeSlots[timeIndex]
+
+          slots.push({
+            timetable_id: timetableId,
+            day_of_week: day,
+            start_time: timeSlot.start,
+            end_time: timeSlot.end,
+            subject_id: subject.id,
+            faculty_id: facultyMember.id,
+            classroom_id: classroom.id,
+            type: subject.type === 'lab' ? 'lab' : 'lecture'
+          })
+        }
+      }
+
+      // Insert all slots
+      const { error } = await supabase
+        .from('timetable_slots')
+        .insert(slots)
+
+      if (error) throw error
+
+      return slots.length
+    } catch (error) {
+      console.error('Error generating timetable slots:', error)
+      throw error
+    }
+  }
+
   return {
     timetables,
     isLoading,
@@ -196,6 +282,7 @@ export function useTimetables() {
     createTimetable,
     updateTimetable,
     updateTimetableStatus,
-    deleteTimetable
+    deleteTimetable,
+    generateTimetableSlots
   }
 }
