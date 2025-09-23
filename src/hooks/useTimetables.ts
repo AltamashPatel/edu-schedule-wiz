@@ -196,10 +196,10 @@ export function useTimetables() {
         .from('subjects')
         .select('*')
         .eq('department', department)
-        .limit(6) // Limit to 6 subjects for a basic schedule
+        .limit(8) // Limit to 8 subjects for a basic schedule
 
       if (!subjects || subjects.length === 0) {
-        throw new Error('No subjects found for this department')
+        throw new Error(`No subjects found for ${department} department. Please add subjects first.`)
       }
 
       // Get faculty for the department
@@ -209,7 +209,7 @@ export function useTimetables() {
         .eq('department', department)
 
       if (!faculty || faculty.length === 0) {
-        throw new Error('No faculty found for this department')
+        throw new Error(`No faculty found for ${department} department. Please add faculty members first.`)
       }
 
       // Get available classrooms
@@ -219,17 +219,17 @@ export function useTimetables() {
         .in('type', ['lecture', 'lab'])
 
       if (!classrooms || classrooms.length === 0) {
-        throw new Error('No classrooms available')
+        throw new Error('No classrooms available. Please add classrooms first.')
       }
 
       // Generate time slots for a week
       const timeSlots = [
-        { start: '09:00', end: '10:00' },
-        { start: '10:00', end: '11:00' },
-        { start: '11:30', end: '12:30' }, // Break between 11-11:30
-        { start: '12:30', end: '13:30' },
-        { start: '14:30', end: '15:30' }, // Lunch break 13:30-14:30
-        { start: '15:30', end: '16:30' },
+        { start: '09:00:00', end: '10:00:00' },
+        { start: '10:00:00', end: '11:00:00' },
+        { start: '11:30:00', end: '12:30:00' }, // Break between 11-11:30
+        { start: '12:30:00', end: '13:30:00' },
+        { start: '14:30:00', end: '15:30:00' }, // Lunch break 13:30-14:30
+        { start: '15:30:00', end: '16:30:00' },
       ]
 
       const slots = []
@@ -237,8 +237,8 @@ export function useTimetables() {
       // Generate slots for Monday to Friday (1-5)
       for (let day = 1; day <= 5; day++) {
         for (let timeIndex = 0; timeIndex < timeSlots.length; timeIndex++) {
-          // Skip lunch and some break periods
-          if ((day === 1 && timeIndex === 3) || (day === 3 && timeIndex === 4)) {
+          // Skip some slots to create free periods
+          if ((day === 1 && timeIndex === 3) || (day === 3 && timeIndex === 4) || (day === 5 && timeIndex === 5)) {
             continue // Create some free periods
           }
 
@@ -265,7 +265,10 @@ export function useTimetables() {
         .from('timetable_slots')
         .insert(slots)
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error inserting slots:', error)
+        throw new Error(`Failed to save schedule: ${error.message}`)
+      }
 
       return slots.length
     } catch (error) {
