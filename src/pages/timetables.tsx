@@ -10,6 +10,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Calendar, Plus, Search, Filter, Download, Eye, Edit, Trash, Clock, Users } from "lucide-react";
 import { TimetableList } from "@/components/timetable/timetable-list";
 import { TimetableForm } from "@/components/timetable/timetable-form";
+import { TimetableView } from "@/components/timetable/timetable-view";
 import { useTimetables } from "@/hooks/useTimetables";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
@@ -22,15 +23,26 @@ const Timetables = () => {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTimetableId, setEditingTimetableId] = useState<string | null>(null);
+  const [viewingTimetableId, setViewingTimetableId] = useState<string | null>(null);
 
-  // Listen for edit events from TimetableList
+  // Listen for edit and view events from TimetableList
   useState(() => {
     const handleEdit = (event: any) => {
       setEditingTimetableId(event.detail);
+      setShowCreateForm(true);
+    };
+
+    const handleView = (event: any) => {
+      setViewingTimetableId(event.detail);
     };
 
     window.addEventListener('editTimetable', handleEdit);
-    return () => window.removeEventListener('editTimetable', handleEdit);
+    window.addEventListener('viewTimetable', handleView);
+    
+    return () => {
+      window.removeEventListener('editTimetable', handleEdit);
+      window.removeEventListener('viewTimetable', handleView);
+    };
   });
 
   const filteredTimetables = timetables?.filter(timetable => {
@@ -43,6 +55,25 @@ const Timetables = () => {
   }) || [];
 
   const departments = [...new Set(timetables?.map(t => t.batch?.department).filter(Boolean) || [])];
+
+  // Show timetable view if viewing a specific timetable
+  if (viewingTimetableId) {
+    return (
+      <AppLayout>
+        <div className="p-6">
+          <TimetableView 
+            timetableId={viewingTimetableId}
+            onBack={() => setViewingTimetableId(null)}
+            onEdit={() => {
+              setEditingTimetableId(viewingTimetableId);
+              setViewingTimetableId(null);
+              setShowCreateForm(true);
+            }}
+          />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>

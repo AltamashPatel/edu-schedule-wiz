@@ -102,7 +102,7 @@ export function TimetableList() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.dispatchEvent(new CustomEvent('viewTimetable', { detail: timetable.id }))}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Details
                 </DropdownMenuItem>
@@ -191,7 +191,11 @@ export function TimetableList() {
               )}
             </div>
 
-            <Button variant="outline" className="w-full">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => window.dispatchEvent(new CustomEvent('viewTimetable', { detail: timetable.id }))}
+            >
               <Eye className="h-4 w-4 mr-2" />
               View Timetable
             </Button>
