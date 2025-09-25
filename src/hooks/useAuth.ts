@@ -1,32 +1,42 @@
 import { useEffect, useState } from 'react'
-import { User as SupabaseUser } from '@supabase/supabase-js'
+import { User as SupabaseUser, Session } from '@supabase/supabase-js'
 import { supabase, User } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 
 export function useAuth() {
+  const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<SupabaseUser | null>(null)
   const [userProfile, setUserProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchUserProfile(session.user.id)
+    // Set up auth listener FIRST (sync callback to avoid deadlocks)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession)
+      const nextUser = nextSession?.user ?? null
+      setUser(nextUser)
+
+      if (nextSession?.user) {
+        // Defer any Supabase calls to avoid running them inside the callback
+        setTimeout(() => {
+          fetchUserProfile(nextSession.user!.id)
+        }, 0)
       } else {
+        setUserProfile(null)
         setLoading(false)
       }
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+
       if (session?.user) {
-        await fetchUserProfile(session.user.id)
+        fetchUserProfile(session.user.id)
       } else {
-        setUserProfile(null)
         setLoading(false)
       }
     })
@@ -93,8 +103,8 @@ export function useAuth() {
     try {
       setLoading(true)
       const redirectUrl = `${window.location.origin}/dashboard`;
-      
-      const { data, error } = await supabase.auth.signUp({
+
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -160,13 +170,14 @@ export function useAuth() {
   }
 
   return {
+    session,
     user,
     userProfile,
     loading,
     signIn,
     signUp,
     signOut,
-    isAuthenticated: !!user,
+    isAuthenticated: !!session?.user,
     isAdmin: userProfile?.role === 'admin',
     isFaculty: userProfile?.role === 'faculty',
     isStudent: userProfile?.role === 'student'
